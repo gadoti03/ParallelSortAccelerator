@@ -1,0 +1,9 @@
+CMake:
+    CMake è un generatore di build multipiattaforma.
+    Non compila direttamente il codice, ma genera i file di build per il tuo sistema (Ninja, MakeFile)
+        quindi: CMake trasforma la descrizione del progetto in istruzioni comprensibili al compilatore o a make/ninja.
+
+
+1) mettere il 
+    // nome.cpp
+    sopra ad ogni file 

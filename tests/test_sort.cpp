@@ -3,6 +3,7 @@
 #include <iostream>
 
 int main() {
+    
     const int n = 1 << 24; // 16777216 elements for test
     const int seed = 12345;
 

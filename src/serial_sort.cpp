@@ -79,6 +79,7 @@ namespace serial {
         Oprational Steps:
         1. Find the maximum number to determine the number of digits
         2. Perform counting sort for each digit, starting from the least significant digit to the most significant digit
+            -> This is done using a stable sort (like counting sort) to maintain the relative order of elements with the same digit value
     
         Time Complexity:
             - Average Case: O(d*(n + k))
@@ -91,7 +92,7 @@ namespace serial {
             int count[10] = {0}; // for digits 0-9
             for(int i=0;i<n;i++) count[(arr[i]/exp)%10]++; // count occurrences
             for(int i=1;i<10;i++) count[i]+=count[i-1];  // cumulative count: count[i] now contains actual position of this digit in output[]
-            for(int i=n-1;i>=0;i--) {
+            for(int i=n-1;i>=0;i--) { // preserve stability by iterating from end
                 output[count[(arr[i]/exp)%10]-1]=arr[i]; // place in output in correct position
                 count[(arr[i]/exp)%10]--; // decrease count for same digit
             }
@@ -101,7 +102,17 @@ namespace serial {
     }
 
     // ------------------ Bitonic Sort ------------------
+    /*
+        Oprational Steps:
+        1. Create a bitonic sequence by recursively sorting the first half in ascending order (true) and the second half in descending order (false)
+        2. Merge the bitonic sequence into a fully sorted sequence
+    
+        Time Complexity:
+            - Average Case: O(log^2 n)
+                -> The bitonic sort consists of log n stages, and each stage involves log n comparisons and swaps
+    */
     static void bitonic_merge(int* arr, int low, int cnt, bool dir) {
+        // cnt: number of elements in the bitonic sequence
         if(cnt>1){
             int k = cnt/2;
             for(int i=low;i<low+k;i++)
@@ -123,27 +134,4 @@ namespace serial {
     void bitonic_sort(int* arr, int n) {
         bitonic_sort_rec(arr, 0, n, true);
     }
-
-    // ------------------ Even-Odd Sort ------------------
-    void even_odd_sort(int* arr, int n) {
-        bool sorted = false;
-        while(!sorted) {
-            sorted = true;
-            // Even phase
-            for(int i=0;i+1<n;i+=2){
-                if(arr[i]>arr[i+1]){
-                    std::swap(arr[i],arr[i+1]);
-                    sorted=false;
-                }
-            }
-            // Odd phase
-            for(int i=1;i+1<n;i+=2){
-                if(arr[i]>arr[i+1]){
-                    std::swap(arr[i],arr[i+1]);
-                    sorted=false;
-                }
-            }
-        }
-    }
-
-} // namespace serial
+}

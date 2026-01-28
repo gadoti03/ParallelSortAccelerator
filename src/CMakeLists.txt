@@ -5,4 +5,4 @@ add_library(serial_sort STATIC serial_sort.cpp)
 target_include_directories(serial_sort PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 # Optional: compiler warnings
-# target_compile_options(serial_sort PUBLIC -Wall -Wextra -Wpedantic)
+target_compile_options(serial_sort PUBLIC -Wall -Wextra -Wpedantic)

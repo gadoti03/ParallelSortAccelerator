@@ -6,4 +6,40 @@ CMake:
 
 1) mettere il 
     // nome.cpp
-    sopra ad ogni file 
+    sopra ad ogni file
+
+
+    /*
+    void radix_sort(unsigned int* arr, int n) {
+
+        unsigned int max_val = *std::max_element(arr, arr + n);
+
+        for (unsigned int exp = 1; exp <= max_val; ) { // iterate over each digit
+            unsigned int* output = new unsigned int[n];
+            int count[10] = {0}; // for digits 0-9
+
+            // Count occurrences
+            for (int i = 0; i < n; i++)
+                count[(arr[i] / exp) % 10]++;
+
+            // Cumulative count
+            for (int i = 1; i < 10; i++)
+                count[i] += count[i - 1];
+
+            // Fill the output array in reverse order for stability
+            for (int i = n - 1; i >= 0; i--) {
+                unsigned int digit = (arr[i] / exp) % 10;
+                output[count[digit] - 1] = arr[i];
+                count[digit]--;
+            }
+
+            // Copy back to arr
+            std::memcpy(arr, output, n * sizeof(unsigned int));
+            delete[] output;
+
+            // Protect overflow
+            if (exp > max_val / 10) break;
+            exp *= 10;
+        }
+    }
+    */ 

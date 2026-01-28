@@ -11,17 +11,17 @@
 namespace utils {
 
     // Generates a random integer array, aligned to DATA_LANE
-    inline int* generate_random_array(int size, int seed = 42) {
-        int* arr = static_cast<int*>(_mm_malloc(size*sizeof(int), DATA_LANE));
+    inline unsigned int* generate_random_array(unsigned size, int seed = 42) {
+        unsigned int* arr = static_cast<unsigned int*>(_mm_malloc(size*sizeof(unsigned int), DATA_LANE));
         std::mt19937 rng(seed);
-        std::uniform_int_distribution<int> dist(0, 2147483647);
-        for(int i=0;i<size;i++) arr[i]=dist(rng);
+        std::uniform_int_distribution<unsigned int> dist(0, 2147483647);
+        for(unsigned i=0;i<size;i++) arr[i]=dist(rng);
         return arr; // caller must free with _mm_free(arr)
     }
 
     // Checks if the array is sorted
-    inline bool is_sorted(const int* arr, int n) {
-        for(int i=1;i<n;i++)
+    inline bool is_sorted(const unsigned int* arr, unsigned n) {
+        for(unsigned i=1;i<n;i++)
             if(arr[i-1]>arr[i]) return false;
         return true;
     }
@@ -35,8 +35,13 @@ namespace utils {
     }
 
     // Copies an array
-    inline void copy_array(const int* src, int* dst, int n) {
-        std::memcpy(dst, src, n*sizeof(int));
+    inline void copy_array(const unsigned int* src, unsigned int* dst, unsigned n) {
+        std::memcpy(dst, src, n*sizeof(unsigned int));
     }
 
-} // namespace utils
+    // Checks if two arrays are equal
+    inline bool arrays_equal(const unsigned int* a, const unsigned int* b, unsigned n) {
+        // byte-wise comparison is safe for unsigned int
+        return std::memcmp(a, b, n * sizeof(unsigned int)) == 0;
+    }
+}

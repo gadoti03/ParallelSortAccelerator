@@ -43,7 +43,7 @@ namespace simd {
 
         // Allocate output array and count array
         unsigned int* output = static_cast<unsigned int*>(_mm_malloc(n * sizeof(unsigned int), 32)); // Dynamic aligned allocation
-        alignas(32) unsigned int count[histogram_size]; // Static aligned allocation
+        unsigned int* count = static_cast<unsigned int*>(_mm_malloc(histogram_size * sizeof(unsigned int), 32)); // Dynamic aligned allocation
 
         for (shift = 0; shift < max_bits; shift += bits_per_pass) { // iterate over each 4 bits
 
@@ -93,6 +93,7 @@ namespace simd {
             std::memcpy(arr, output, n * sizeof(unsigned int));
         }
         _mm_free(output);
+        _mm_free(count);
     }
 
     // ------------------ Bitonic Sort ------------------

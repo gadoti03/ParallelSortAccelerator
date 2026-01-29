@@ -3,19 +3,17 @@
 namespace serial {
 
     // QuickSort
-    void quicksort(unsigned int* arr, unsigned int n);
+    void quick_sort(unsigned int* arr, unsigned int n);
 
     // MergeSort
     void merge_sort(unsigned int* arr, unsigned int n);
 
-    // Radix Sort (for non-negative integers)
-    void radix_sort(unsigned int* arr, unsigned int n);
-
     // Radix Sort Binary (for non-negative integers)
-    void radix_sort_binary(unsigned int* arr, unsigned int n);
+    void radix_sort(unsigned int* arr, unsigned int n);
 
     // Bitonic Sort (works best for n = power of 2)
     void bitonic_sort(unsigned int* arr, unsigned int n);
+    
     // Even-Odd Sort
     // void even_odd_sort(unsigned int* arr, unsigned int n);
 }
@@ -26,7 +24,7 @@ namespace simd {
     // void quicksort(int* arr, unsigned int n);
 
     // MergeSort
-    void merge_sort(unsigned int* arr, unsigned int n);
+    // void merge_sort(unsigned int* arr, unsigned int n);
     
     // Radix Sort (for non-negative integers)
     void radix_sort(unsigned int* arr, unsigned int n);

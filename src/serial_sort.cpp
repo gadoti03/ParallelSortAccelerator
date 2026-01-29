@@ -20,7 +20,7 @@ namespace serial {
                 -> the level of the partitioning tree becomes log n and at each level we do O(n) work to partition
             - Worst Case: O(n^2)
     */
-    static void quicksort_rec(unsigned int* arr, int left, int right) {
+    static void quick_sort_rec(unsigned int* arr, int left, int right) {
         if(left >= right) return; // Base case (0 or 1 element)
         unsigned int pivot = arr[right];
         int i = left;
@@ -31,12 +31,12 @@ namespace serial {
             }
         }
         std::swap(arr[i], arr[right]); // Place pivot in correct position
-        quicksort_rec(arr, left, i-1);
-        quicksort_rec(arr, i+1, right);
+        quick_sort_rec(arr, left, i-1);
+        quick_sort_rec(arr, i+1, right);
     }
 
-    void quicksort(unsigned int* arr, int n) {
-        quicksort_rec(arr, 0, n-1);
+    void quick_sort(unsigned int* arr, unsigned int n) {
+        quick_sort_rec(arr, 0, n-1);
     }
 
     // ------------------ MergeSort ------------------
@@ -69,9 +69,9 @@ namespace serial {
         delete[] L; delete[] R;
     }
 
-    void merge_sort(unsigned int* arr, int n) {
+    void merge_sort(unsigned int* arr, unsigned int n) {
         if(n <= 1) return;
-        int mid = n/2;
+        unsigned int mid = n/2;
         merge_sort(arr, mid);
         merge_sort(arr+mid, n-mid);
         merge(arr, 0, mid-1, n-1); // arr, left, mid, right
@@ -88,7 +88,7 @@ namespace serial {
             - Average Case: O(d*(n + k))
                 -> where d is the number of digits or byte in the maximum number, n is the number of elements in the array, and k is the range of the input (for base 10, k=10; for byte, k=256)
     */
-    void radix_sort_binary(unsigned int* arr, unsigned int n) {
+    void radix_sort(unsigned int* arr, unsigned int n) {
 
         // Parameters for radix sort
         unsigned int bits_per_pass = 4; // number of bits per pass

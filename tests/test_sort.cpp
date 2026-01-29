@@ -1,118 +1,104 @@
 #include "sort.hpp"
 #include "utils.hpp"
 #include <iostream>
+#include <cstring>
 
-int main() {
-    
+enum class Backend { Serial, SIMD, All };
+enum class Algo { Quick, Merge, Radix, Bitonic, All };
+
+// Helper per copiare l'array originale
+unsigned int* copy_array(const unsigned int* original, unsigned int n) {
+    unsigned int* arr = (unsigned int*) _mm_malloc(n * sizeof(unsigned int), 32);
+    std::memcpy(arr, original, n * sizeof(unsigned int));
+    return arr;
+}
+
+// Funzione generica di test
+void run_test(const char* name,
+              void (*sort_fn)(unsigned int*, unsigned int),
+              const unsigned int* original,
+              unsigned int n)
+{
+    unsigned int* arr = copy_array(original, n);
+
+    double t = utils::measure_time([&]() {
+        sort_fn(arr, n);
+    });
+
+    std::cout << name << ": " << t << " ms, "
+              << (utils::is_sorted(arr, n) ? "sorted" : "NOT sorted")
+              << "\n";
+
+    _mm_free(arr);
+}
+
+// Test SERIAL
+void test_serial(Algo algo, const unsigned int* original, unsigned int n) {
+    std::cout << "\n[ SERIAL ]\n";
+
+    if (algo == Algo::Quick || algo == Algo::All)
+        run_test("Serial QuickSort", serial::quick_sort, original, n);
+
+    if (algo == Algo::Merge || algo == Algo::All)
+        run_test("Serial MergeSort", serial::merge_sort, original, n);
+
+    if (algo == Algo::Radix || algo == Algo::All)
+        run_test("Serial Radix", serial::radix_sort, original, n);
+
+    if (algo == Algo::Bitonic || algo == Algo::All)
+        run_test("Serial Bitonic", serial::bitonic_sort, original, n);
+}
+
+// Test SIMD
+void test_simd(Algo algo, const unsigned int* original, unsigned int n) {
+    std::cout << "\n[ SIMD ]\n";
+
+    if (algo == Algo::Radix || algo == Algo::All)
+        run_test("SIMD Radix", simd::radix_sort, original, n);
+
+    if (algo == Algo::Bitonic || algo == Algo::All)
+        run_test("SIMD Bitonic", simd::bitonic_sort, original, n);
+}
+
+// Parser argomenti
+Backend parse_backend(const char* s) {
+    if (!strcmp(s, "serial")) return Backend::Serial;
+    if (!strcmp(s, "simd"))   return Backend::SIMD;
+    if (!strcmp(s, "all"))    return Backend::All;
+    std::cerr << "Invalid backend: " << s << "\n";
+    std::exit(1);
+}
+
+Algo parse_algo(const char* s) {
+    if (!strcmp(s, "quick"))   return Algo::Quick;
+    if (!strcmp(s, "merge"))   return Algo::Merge;
+    if (!strcmp(s, "radix"))   return Algo::Radix;
+    if (!strcmp(s, "bitonic")) return Algo::Bitonic;
+    if (!strcmp(s, "all"))     return Algo::All;
+    std::cerr << "Invalid algorithm: " << s << "\n";
+    std::exit(1);
+}
+
+int main(int argc, char** argv) {
+    Backend backend = Backend::All;
+    Algo algo = Algo::All;
+
+    if (argc >= 2) backend = parse_backend(argv[1]);
+    if (argc >= 3) algo = parse_algo(argv[2]);
+
     const unsigned int n = 1 << 24;
     const int seed = 1337;
 
-    // Generate original random array
+    // Array originale
     unsigned int* original = utils::generate_random_array(n, seed);
 
-    // Arrays for each algorithm
-    // unsigned int* arr_quick = utils::generate_random_array(n, seed);
-    // unsigned int* arr_merge = utils::generate_random_array(n, seed);
-    unsigned int* arr_radix = utils::generate_random_array(n, seed);
-    unsigned int* arr_radix_binary = utils::generate_random_array(n, seed);
-    unsigned int* arr_bitonic = utils::generate_random_array(n, seed);
-    // unsigned int* arr_evenodd = utils::generate_random_array(n, seed);
+    // Esecuzione test
+    if (backend == Backend::Serial || backend == Backend::All)
+        test_serial(algo, original, n);
 
-    unsigned int* arr_radix_simd = utils::generate_random_array(n, seed);
-    unsigned int* arr_bitonic_simd = utils::generate_random_array(n, seed);
+    if (backend == Backend::SIMD || backend == Backend::All)
+        test_simd(algo, original, n);
 
-    std::cout << "Benchmarking serial algorithms on " << n << " elements\n\n";
-
-    if (utils::arrays_equal(original, arr_radix_binary, n))
-        std::cout << "arr_radix_binary matches original\n";
-    else
-        std::cout << "arr_radix_binary does NOT match original\n";
-
-    if (utils::arrays_equal(original, arr_radix_simd, n))
-        std::cout << "arr_radix_simd matches original\n";
-    else
-        std::cout << "arr_radix_simd does NOT match original\n";
-    std::cout << "\n";
- 
-    /*
-    // QuickSort
-    double t_quick = utils::measure_time([&]() {
-        serial::quicksort(arr_quick, n);
-    });
-    std::cout << "QuickSort: " << t_quick << " ms, "
-              << (utils::is_sorted(arr_quick, n) ? "sorted" : "NOT sorted") << "\n";
-
-    // MergeSort
-    double t_merge = utils::measure_time([&]() {
-        serial::merge_sort(arr_merge, n);
-    });
-    std::cout << "MergeSort: " << t_merge << " ms, "
-              << (utils::is_sorted(arr_merge, n) ? "sorted" : "NOT sorted") << "\n";
-    
-    // RadixSort
-    double t_radix = utils::measure_time([&]() {
-        serial::radix_sort(arr_radix, n);
-    });
-    std::cout << "RadixSort: " << t_radix << " ms, "
-              << (utils::is_sorted(arr_radix, n) ? "sorted" : "NOT sorted") << "\n";
-    
-    // RadixSortBinary
-    double t_radix_binary = utils::measure_time([&]() {
-        serial::radix_sort_binary(arr_radix_binary, n);
-    });
-    std::cout << "RadixSort Binary: " << t_radix_binary << " ms, "
-              << (utils::is_sorted(arr_radix_binary, n) ? "sorted" : "NOT sorted") << "\n";
-    */
-    // BitonicSort
-    double t_bitonic = utils::measure_time([&]() {
-        serial::bitonic_sort(arr_bitonic, n);
-    });
-    std::cout << "BitonicSort: " << t_bitonic << " ms, "
-              << (utils::is_sorted(arr_bitonic, n) ? "sorted" : "NOT sorted") << "\n";
-    /*
-    std::cout << "\nBenchmarking SIMD algorithms on " << n << " elements\n\n";
-
-    // BitonicSort
-    double t_bitonic_simd = utils::measure_time([&]() {
-        simd::bitonic_sort(arr_bitonic_simd, n);
-    });
-    std::cout << "BitonicSort: " << t_bitonic_simd << " ms, "
-              << (utils::is_sorted(arr_bitonic_simd, n) ? "sorted" : "NOT sorted") << "\n";
-    */
-
-    // RadixSortBinary
-    double t_radix_binary = utils::measure_time([&]() {
-        serial::radix_sort_binary(arr_radix_binary, n);
-    });
-    std::cout << "RadixSort Binary: " << t_radix_binary << " ms, "
-              << (utils::is_sorted(arr_radix_binary, n) ? "sorted" : "NOT sorted") << "\n";
-    
-    std::cout << "\nBenchmarking SIMD Radix Sort on " << n << " elements\n\n";
-    // RadixSortBinary
-    double t_radix_binary_simd = utils::measure_time([&]() {
-        simd::radix_sort(arr_radix_simd, n);
-    });
-    std::cout << "RadixSort Binary: " << t_radix_binary_simd << " ms, "
-              << (utils::is_sorted(arr_radix_simd, n) ? "sorted" : "NOT sorted") << "\n";
-
-    // BitonicSort
-    double t_bitonic_simd = utils::measure_time([&]() {
-        simd::bitonic_sort(arr_bitonic_simd, n);
-    });
-    std::cout << "BitonicSort: " << t_bitonic_simd << " ms, "
-              << (utils::is_sorted(arr_bitonic_simd, n) ? "sorted" : "NOT sorted") << "\n";
-
-    // Free memory
     _mm_free(original);
-    // _mm_free(arr_quick);
-    // _mm_free(arr_merge);
-    _mm_free(arr_radix);
-    _mm_free(arr_radix_binary);
-    _mm_free(arr_bitonic);
-    // _mm_free(arr_evenodd);
-
-    _mm_free(arr_bitonic_simd);
-    _mm_free(arr_radix_simd);
-
     return 0;
 }

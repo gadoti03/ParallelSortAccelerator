@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # --- Options to enable/disable backends ---
 option(USE_SERIAL "Enable serial C++ backend" ON)
-option(USE_SIMD "Enable SIMD CPU backend" ON)
+option(USE_SIMD "Enable SIMD CPU backend" OFF)
 option(USE_OPENMP_BACKEND "Enable OpenMP CPU backend" OFF)
 option(USE_CUDA_BACKEND "Enable CUDA GPU backend" OFF)
 

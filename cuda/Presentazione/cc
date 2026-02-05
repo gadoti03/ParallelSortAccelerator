@@ -1,0 +1,24 @@
+C.C. 7.5
+
+Ratio of FP32 to FP64 Throughput (Non-Tensor Core throughputs)              32:1
+Maximum number of resident grids per device (Concurrent Kernel Execution)   128
+Maximum dimensionality of a grid                                            3
+# Maximum x-dimension of a grid                                               2^31-1
+# Maximum y- or z-dimension of a grid                                         65535
+Maximum dimensionality of a thread block                                    3
+# Maximum x- or y-dimensionality of a thread block                            1024
+# Maximum z-dimension of a thread block                                       64
+# Maximum number of threads per block                                         1024
+# Warp size                                                                   32
+Number of 32-bit registers per SM                                           64 K
+# Maximum number of 32-bit registers per thread block                         64 K
+Maximum number of 32-bit registers per thread                               255
+# Maximum amount of shared memory per SM                                      64 KB
+# Maximum amount of shared memory per thread block                            64 KB
+# Number of shared memory banks                                               32
+Maximum amount of local memory per thread                                   512 KB
+# Constant memory size                                                        64 KB
+Cache working set per SM for constant memory                                8 KB
+Cache working set per SM for texture memory                                 32 or 64 KB
+Unified Data Cache Size                                                     96 KB
+# SMEM Capacity Sizes                                                         32, 64

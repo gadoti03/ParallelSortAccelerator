@@ -86,8 +86,8 @@ int main(int argc, char** argv) {
     if (argc >= 2) backend = parse_backend(argv[1]);
     if (argc >= 3) algo = parse_algo(argv[2]);
 
-    const unsigned int n = 1 << 24;
-    const int seed = 1337;
+    const unsigned int n = 1 << 26;
+    const int seed = 0;
 
     // Array originale
     unsigned int* original = utils::generate_random_array(n, seed);

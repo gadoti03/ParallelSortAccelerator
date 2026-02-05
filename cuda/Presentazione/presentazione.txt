@@ -1,0 +1,15 @@
+1) nvidia-smi
+
+    ottengo:
+        NVIDIA GeForce RTX 2080 Ti
+
+    cerco:
+        https://developer.nvidia.com/cuda/gpus
+
+    ottengo:
+        cc: 7.5
+
+    cerco:
+        https://docs.nvidia.com/cuda/archive/13.1.0/cuda-programming-guide/05-appendices/compute-capabilities.html?utm_source=chatgpt.com
+
+    ottengo i dati

@@ -1,0 +1,77 @@
+2 ^ 8
+Serial QuickSort: 0.051211 ms, sorted
+Serial MergeSort: 0.092568 ms, sorted
+Serial Radix: 0.025645 ms, sorted
+Serial Bitonic: 0.121797 ms, sorted
+
+SIMD 128 bit Bitonic: 0.043328 ms, sorted
+SIMD 256 bit Bitonic: 0.063947 ms, sorted
+
+SIMD 256 bit Radix: 0.006629 ms, sorted
+
+SIMD hybrid Radix+Bitonic: 0.056784 ms, sorted
+
+2 ^ 12
+Serial QuickSort: 1.15811 ms, sorted
+Serial MergeSort: 1.26758 ms, sorted
+Serial Radix: 0.114281 ms, sorted
+Serial Bitonic: 1.29675 ms, sorted
+
+SIMD 128 bit Bitonic: 1.05406 ms, sorted
+SIMD 256 bit Bitonic: 1.0288 ms, sorted
+
+SIMD 256 bit Radix: 0.110594 ms, sorted
+
+SIMD hybrid Radix+Bitonic: 1.06803 ms, sorted
+
+2 ^ 16
+Serial QuickSort: 11.5909 ms, sorted
+Serial MergeSort: 10.3915 ms, sorted
+Serial Radix: 1.63568 ms, sorted
+Serial Bitonic: 28.1073 ms, sorted
+
+SIMD 128 bit Bitonic: 10.8933 ms, sorted
+SIMD 256 bit Bitonic: 9.14542 ms, sorted
+
+SIMD 256 bit Radix: 0.693236 ms, sorted
+
+SIMD hybrid Radix+Bitonic: 8.95321 ms, sorted
+
+2 ^ 20
+Serial QuickSort: 152.601 ms, sorted
+Serial MergeSort: 168.147 ms, sorted
+Serial Radix: 101.097 ms, sorted
+Serial Bitonic: 604.826 ms, sorted
+
+SIMD 128 bit Bitonic: 132.046 ms, sorted
+SIMD 256 bit Bitonic: 151.285 ms, sorted
+
+SIMD 256 bit Radix: 12.5382 ms, sorted
+
+SIMD hybrid Radix+Bitonic: 125.081 ms, sorted
+
+2 ^ 24
+Serial QuickSort: 2930.49 ms, sorted
+Serial MergeSort: 3171.79 ms, sorted
+Serial Radix: 480.472 ms, sorted
+Serial Bitonic: 12153.5 ms, sorted
+
+SIMD 128 bit Bitonic: 3035.33 ms, sorted
+SIMD 256 bit Bitonic: 3277.23 ms, sorted
+
+SIMD 256 bit Radix: 203.49 ms, sorted
+
+SIMD hybrid Radix+Bitonic: 2738.76 ms, sorted
+
+2 ^ 28
+Serial QuickSort: 56767.2 ms, sorted
+Serial MergeSort: 66239.2 ms, sorted
+Serial Radix: 8526.63 ms, sorted
+Serial Bitonic: 276937 ms, sorted
+
+SIMD Bitonic: 55251.9 ms, sorted
+SIMD 256 bit Bitonic: 64468.8 ms, sorted
+
+SIMD 256 bit Radix: 3207.78 ms, sorted
+
+SIMD hybrid Radix+Bitonic: 52363.1 ms, sorted

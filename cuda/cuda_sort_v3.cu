@@ -4,9 +4,9 @@
 #include <climits>
 #include <ctime>
 
-#define THREADS_PER_BLOCK 256
-#define THREADS_PER_BLOCK_SHARED_MEMORY_init 128
-#define THREADS_PER_BLOCK_SHARED_MEMORY 128
+#define THREADS_PER_BLOCK 32
+#define THREADS_PER_BLOCK_SHARED_MEMORY_init 512
+#define THREADS_PER_BLOCK_SHARED_MEMORY 32
 
 // Macro to check CUDA errors
 #define CHECK(call) \
@@ -56,39 +56,39 @@ void printMemory(int *h_data, int N) {
 // CUDA kernel for a single compare-and-swap step in Bitonic Sort
 __global__ void bitonicCompareGlobal(int *data, int k, int j) {
 
-    unsigned int gid = blockDim.x * blockIdx.x + threadIdx.x;
+    int temp = j / THREADS_PER_BLOCK;
+    int new_blockIdx = (blockIdx.x % temp) + (blockIdx.x / temp) * temp * 2;
+
+    unsigned int gid = blockDim.x * new_blockIdx + threadIdx.x;
     unsigned int ixj = gid ^ j;
 
-    if (ixj > gid) { // single thread handles the pair
+    int a = data[gid];   // register
+    int b = data[ixj];   // register
 
-        int a = data[gid];   // register
-        int b = data[ixj];   // register
+    bool ascending = ((gid & k) == 0);
 
-        bool ascending = ((gid & k) == 0);
-
-        if ((ascending && a > b) || (!ascending && a < b)) {
-            data[gid] = b;
-            data[ixj] = a;
-        }
+    if ((ascending && a > b) || (!ascending && a < b)) {
+        data[gid] = b;
+        data[ixj] = a;
     }
 }
 
-
 // CUDA kernel for Bitonic Sort using shared memory (sort first phase, with direction)
 __global__ void bitonicCompareLocal_init(int *data, int shift) {
-    __shared__ int s[THREADS_PER_BLOCK_SHARED_MEMORY_init];
+    __shared__ int shared_memory[THREADS_PER_BLOCK_SHARED_MEMORY_init];
 
     unsigned int tid = threadIdx.x;
     unsigned int gid = blockIdx.x * blockDim.x + tid;
 
+    int j, k, ixj, dir, a, b;
+
     unsigned int direction = (blockIdx.x >> shift) & 1;
 
     // Load from global memory
-    s[tid] = data[gid];
+    shared_memory[tid] = data[gid];
     __syncthreads();
 
-    unsigned j, ixj, k, dir, a, b;
-
+    #pragma unroll
     for (k = 2; k <= THREADS_PER_BLOCK_SHARED_MEMORY_init; k <<= 1) {
         for (j = k >> 1; j > 0; j >>= 1) {
             ixj = tid ^ j;
@@ -96,12 +96,12 @@ __global__ void bitonicCompareLocal_init(int *data, int shift) {
             if (tid < ixj) {
                 dir = ((tid & k) == 0) ? direction : 1 - direction;
 
-                // Swap in shared memory, entrambi i thread leggono/scrivono su s[]
-                a = s[tid];
-                b = s[ixj];
+                // Swap in shared memory, entrambi i thread leggono/scrivono su shared_memory[]
+                a = shared_memory[tid];
+                b = shared_memory[ixj];
                 if ((dir == 0 && a > b) || (dir == 1 && a < b)) {
-                    s[tid] = b;
-                    s[ixj] = a;
+                    shared_memory[tid] = b;
+                    shared_memory[ixj] = a;
                 }
             }
             __syncthreads();
@@ -109,24 +109,26 @@ __global__ void bitonicCompareLocal_init(int *data, int shift) {
     }
 
     // Store back to global memory
-    data[gid] = s[tid];
+    data[gid] = shared_memory[tid];
 }
+
 
 // CUDA kernel for Bitonic Sort using shared memory (sort first phase, with direction)
 __global__ void bitonicCompareLocal(int *data, int shift) {
-    __shared__ int s[THREADS_PER_BLOCK_SHARED_MEMORY];
+    __shared__ int shared_memory[THREADS_PER_BLOCK_SHARED_MEMORY];
 
     unsigned int tid = threadIdx.x;
     unsigned int gid = blockIdx.x * blockDim.x + tid;
 
+    int j, k, ixj, dir, a, b;
+
     unsigned int direction = (blockIdx.x >> shift) & 1;
 
-    unsigned int k, j, ixj, dir, a, b;
-
     // Load from global memory
-    s[tid] = data[gid];
+    shared_memory[tid] = data[gid];
     __syncthreads();
 
+    #pragma unroll
     for (k = 2; k <= THREADS_PER_BLOCK_SHARED_MEMORY; k <<= 1) {
         for (j = k >> 1; j > 0; j >>= 1) {
             ixj = tid ^ j;
@@ -134,12 +136,12 @@ __global__ void bitonicCompareLocal(int *data, int shift) {
             if (tid < ixj) {
                 dir = ((tid & k) == 0) ? direction : 1 - direction;
 
-                // Swap in shared memory, entrambi i thread leggono/scrivono su s[]
-                a = s[tid];
-                b = s[ixj];
+                // Swap in shared memory, entrambi i thread leggono/scrivono su shared_memory[]
+                a = shared_memory[tid];
+                b = shared_memory[ixj];
                 if ((dir == 0 && a > b) || (dir == 1 && a < b)) {
-                    s[tid] = b;
-                    s[ixj] = a;
+                    shared_memory[tid] = b;
+                    shared_memory[ixj] = a;
                 }
             }
             __syncthreads();
@@ -147,7 +149,7 @@ __global__ void bitonicCompareLocal(int *data, int shift) {
     }
 
     // Store back to global memory
-    data[gid] = s[tid];
+    data[gid] = shared_memory[tid];
 }
 
 // Host function to launch Bitonic Sort
@@ -160,7 +162,7 @@ void bitonicSort(int *d_data, int N) {
     int numBlocks_shared = (N + THREADS_PER_BLOCK_SHARED_MEMORY - 1) / THREADS_PER_BLOCK_SHARED_MEMORY;
 
     dim3 blockDim(THREADS_PER_BLOCK, 1, 1);
-    dim3 gridDim(numBlocks, 1, 1);
+    dim3 gridDim(numBlocks / 2, 1, 1);
     dim3 blockDim_shared_init(THREADS_PER_BLOCK_SHARED_MEMORY_init, 1, 1);
     dim3 gridDim_shared_init(numBlocks_shared_init, 1, 1);
     dim3 blockDim_shared(THREADS_PER_BLOCK_SHARED_MEMORY, 1, 1);
@@ -179,7 +181,6 @@ void bitonicSort(int *d_data, int N) {
             bitonicCompareGlobal<<<gridDim, blockDim>>>(d_data, k, j);
             CHECK(cudaPeekAtLastError());    // check kernel launch
             CHECK(cudaDeviceSynchronize());  // check kernel execution
-
         }
 
         shift = 0;

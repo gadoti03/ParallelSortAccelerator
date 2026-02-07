@@ -53,8 +53,8 @@ void test_serial(Algo algo, const unsigned int* original, unsigned int n) {
 void test_simd(Algo algo, const unsigned int* original, unsigned int n) {
     std::cout << "\n[ SIMD ]\n";
 
-    //if (algo == Algo::Radix || algo == Algo::All)
-    //    run_test("SIMD Radix", simd::radix_sort, original, n);
+    if (algo == Algo::Radix || algo == Algo::All)
+        run_test("SIMD Radix", simd::radix_sort, original, n);
 
     if (algo == Algo::Bitonic || algo == Algo::All)
         run_test("SIMD Bitonic", simd::bitonic_sort, original, n);
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
     if (argc >= 2) backend = parse_backend(argv[1]);
     if (argc >= 3) algo = parse_algo(argv[2]);
 
-    const unsigned int n = 1 << 8;
+    const unsigned int n = 1 << 29;
     const int seed = 0;
 
     // Array originale

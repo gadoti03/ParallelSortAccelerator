@@ -1,11 +1,12 @@
-# Create a static library for the SIMD C++ backend
-add_library(cuda_sort STATIC cuda_sort.cu)
+# Create a static library for the CUDA backend
+add_library(cuda_sort_v1 STATIC cuda_sort_v1.cu)
+target_include_directories(cuda_sort_v1 PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_options(nvcc -o cuda_sort_v1 PRIVATE cuda_sort_v1.cu)
 
-# Include headers from the include/ folder
-target_include_directories(cuda_sort PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_library(cuda_sort_v1 STATIC cuda_sort_v1.cu)
+target_include_directories(cuda_sort_v1 PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_options(nvcc -o cuda_sort_v1 PRIVATE cuda_sort_v1.cu)
 
-# Optional: compiler warnings
-if(USE_CUDA)
-    target_link_libraries(cuda_sort PUBLIC ${CUDA_LIBRARIES})
-    target_compile_options(cuda_sort PUBLIC ${CUDA_NVCC_FLAGS})
-endif()
+add_library(cuda_sort_v1 STATIC cuda_sort_v1.cu)
+target_include_directories(cuda_sort_v1 PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_options(nvcc -o cuda_sort_v1 PRIVATE cuda_sort_v1.cu)

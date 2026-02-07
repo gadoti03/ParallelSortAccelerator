@@ -10,7 +10,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # --- Options to enable/disable backends ---
 option(USE_SERIAL "Enable serial C++ backend" ON)
 option(USE_SIMD "Enable SIMD CPU backend" ON)
-option(USE_OPENMP_BACKEND "Enable OpenMP CPU backend" OFF)
 option(USE_CUDA_BACKEND "Enable CUDA GPU backend" OFF)
 
 # --- Options for SIMD versions ---
@@ -20,18 +19,6 @@ option(USE_SIMD_V3 "Enable SIMD version 3 (128-bit + 256-bit)" OFF)
 
 # --- Initialize list of enabled backends ---
 set(BACKENDS "")
-
-# --- Find OpenMP if requested ---
-if(USE_OPENMP_BACKEND)
-    find_package(OpenMP)
-    if(OpenMP_CXX_FOUND)
-        message(STATUS "OpenMP found! Enabling OpenMP backend")
-        set(USE_OPENMP TRUE)
-    else()
-        message(WARNING "OpenMP not found! OpenMP backend will be disabled.")
-        set(USE_OPENMP FALSE)
-    endif()
-endif()
 
 # --- Find CUDA if requested ---
 if(USE_CUDA_BACKEND)
@@ -67,13 +54,6 @@ if(USE_SIMD)
     if(NOT USE_SIMD_V1 AND NOT USE_SIMD_V2 AND NOT USE_SIMD_V3)
         message(FATAL_ERROR "No SIMD version selected! Please enable at least one of USE_SIMD_V1, USE_SIMD_V2, or USE_SIMD_V3.")
     endif()
-endif()
-        
-
-# --- Add OpenMP backend ---
-if(USE_OPENMP_BACKEND AND USE_OPENMP)
-    add_subdirectory(openmp)
-    list(APPEND BACKENDS openmp_sort)
 endif()
 
 # --- Add CUDA backend ---

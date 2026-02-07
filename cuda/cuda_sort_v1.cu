@@ -2,6 +2,9 @@
 #include <iostream>
 #include <random>
 #include <climits>
+#include <ctime>
+
+#define THREADS_PER_BLOCK 256
 
 // Macro to check CUDA errors
 #define CHECK(call) \
@@ -14,45 +17,49 @@
     } \
 }
 
-// Device function to swap two integers
+// Device swap
 __device__ void swap(int &a, int &b) {
     int temp = a;
     a = b;
     b = temp;
 }
 
+// Function to get current time in seconds
+double cpuSecond() {
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    return ((double)ts.tv_sec + (double)ts.tv_nsec * 1.e-9);
+}
+
 // CUDA kernel for a single compare-and-swap step in Bitonic Sort
 __global__ void bitonicCompareSwap(int *data, int k, int j, int N) {
-    /*
-        k: current stage size
-        j: current comparison distance
-        N: total number of elements   
-    */
-    unsigned int idx = threadIdx.x + blockDim.x * blockIdx.x; // global thread index
 
-    unsigned int ixj = idx ^ j; // index of the element to compare with
+    unsigned int gid = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (ixj > idx && ixj < N) { // prevent double swap and out-of-bounds
-        if ((idx & k) == 0) { // ascending phase
-            if (data[idx] > data[ixj])
-                swap(data[idx], data[ixj]);
+    unsigned int ixj = gid ^ j;
+
+    if (ixj > gid) { // prevent double swap
+        if ((gid & k) == 0) { // ascending phase
+            if (data[gid] > data[ixj])
+                swap(data[gid], data[ixj]);
         } else { // descending phase
-            if (data[idx] < data[ixj])
-                swap(data[idx], data[ixj]);
+            if (data[gid] < data[ixj])
+                swap(data[gid], data[ixj]);
         }
     }
 }
 
 // Host function to launch Bitonic Sort
 void bitonicSort(int *d_data, int N) {
-    int threadsPerBlock = 1024;
-    int numBlocks = (N + threadsPerBlock - 1) / threadsPerBlock;
+    int numBlocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
-    std::cout << "Number of blocks: " << numBlocks << ", Threads per block: " << threadsPerBlock << "\n";
+    dim3 blockDim(THREADS_PER_BLOCK, 1, 1);
+    dim3 gridDim(numBlocks, 1, 1);
 
-    for (int k = 2; k <= N; k <<= 1) { // all possible sizes of subsequences (2, 4, 8, ..., N)
-        for (int j = k >> 1; j > 0; j >>= 1) { // comparison distance (k/2, k/4, ..., 1)
-            bitonicCompareSwap<<<numBlocks, threadsPerBlock>>>(d_data, k, j, N);
+    std::cout << "Number of blocks: " << numBlocks << ", Threads per block: " << THREADS_PER_BLOCK << "\n";
+    for (int k = 2; k <= N; k <<= 1) {
+        for (int j = k >> 1; j > 0; j >>= 1) {
+            bitonicCompareSwap<<<gridDim, blockDim>>>(d_data, k, j, N);
             CHECK(cudaPeekAtLastError());    // check kernel launch
             CHECK(cudaDeviceSynchronize());  // check kernel execution
         }
@@ -60,11 +67,19 @@ void bitonicSort(int *d_data, int N) {
 }
 
 int main(int argc, char *argv[]) {
-    const int N = 1 << 20;
+
+    int N = 1 << 28;
+
+    if (argc > 1) {
+        N = atoi(argv[1]);
+    } else {
+        std::cout << "Using default size N = " << N << "\n";
+    }
+
     int *h_data = new int[N];
 
     // Get seed from command line or use default
-    unsigned int seed = (argc > 1) ? std::atoi(argv[1]) : 0;
+    unsigned int seed = (argc > 1) ? std::atoi(argv[1]) : 1337;
 
     // Random number generator covering full int range
     std::mt19937 gen(seed);
@@ -81,8 +96,12 @@ int main(int argc, char *argv[]) {
     // Copy data from host to device
     CHECK(cudaMemcpy(d_data, h_data, N * sizeof(int), cudaMemcpyHostToDevice));
 
+    
     // Perform Bitonic Sort on the device
+    double start = cpuSecond();
     bitonicSort(d_data, N);
+    double end = cpuSecond();
+    std::cout << "Bitonic Sort completed in " << (end - start) << " seconds.\n";
 
     // Copy sorted data back to host
     CHECK(cudaMemcpy(h_data, d_data, N * sizeof(int), cudaMemcpyDeviceToHost));
@@ -93,9 +112,9 @@ int main(int argc, char *argv[]) {
             std::cout << "Sorting failed at index " << i << "\n";
             break;
         }
-        if (i == N - 2) {
-            std::cout << "Array sorted successfully.\n";
-        }
+	if (i == N - 2) {
+	    std::cout << "Array sorted successfully.\n";
+	    }
     };
 
     // Free memory
